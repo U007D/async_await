@@ -19,12 +19,12 @@
 
 mod consts;
 mod error;
+mod server;
 
 use pico_args::Arguments;
-pub use {consts::*, error::Error};
+pub use {consts::*, error::Error, server::Server};
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
-
 
 fn main() -> Result<()> {
     // see examples/pico_args.rs for argument parsing example

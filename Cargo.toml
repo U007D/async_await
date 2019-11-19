@@ -14,7 +14,7 @@ pico-args = "*"
 derive_more = "*"
 
 [profile.dev]
-codegen-units = 1
+codegen-units = 32
 debug = true
 debug-assertions = true
 lto = false
