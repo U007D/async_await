@@ -1,0 +1,40 @@
+[package]
+authors = ["Brad Gibson <brad@tpfs.io>"]
+categories = []
+edition = "2018"
+keywords = []
+license = "MIT OR Apache-2.0"
+name = "aa"
+readme = "README.md"
+repository = "https://github.com/u007d/aa"
+version = "0.1.0"
+
+[dependencies]
+pico-args = "*"
+derive_more = "*"
+
+[profile.dev]
+codegen-units = 1
+debug = true
+debug-assertions = true
+lto = false
+opt-level = 0
+panic = "unwind"
+rpath = false
+
+[profile.release]
+codegen-units = 1
+debug = false
+debug-assertions = false
+lto = true
+opt-level = 3
+panic = "unwind"
+rpath = false
+
+[profile.test]
+codegen-units = 1
+debug = true
+debug-assertions = true
+lto = false
+opt-level = 0
+rpath = false
