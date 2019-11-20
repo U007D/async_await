@@ -1,41 +1,17 @@
 mod event;
 mod mode;
 mod server_builder;
+mod tide_app;
 #[cfg(test)]
 mod unit_tests;
 
 use crate::{Result, consts::*};
 use std::{
     thread::{sleep},
-    os::unix::thread::{JoinHandleExt, RawPthread},
-    thread
 };
 use tide;
+use tide_app::TideApp;
 pub use {event::Event, mode::Mode, server_builder::ServerBuilder};
-use std::fmt::{Debug, Formatter, Error as StdFmtError};
-use std::ops::Deref;
-
-struct TideApp(tide::App<()>);
-
-impl Debug for TideApp {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), StdFmtError> {
-        write!(f, "tide::App<()>")
-    }
-}
-
-impl Deref for TideApp {
-    type Target = tide::App<()>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl PartialEq for TideApp {
-    fn eq(&self, other: &Self) -> bool {
-        true
-    }
-}
 
 #[derive(Debug, PartialEq)]
 pub struct Server {
@@ -56,9 +32,8 @@ impl Server {
         self
     }
 
-    fn launch(&self) -> RawPthread {
-        let jh = thread::spawn(move || self.app.serve(SERVER_ADDR));
-        jh.into_pthread_t()
+    fn launch(self) -> Result<()> {
+        Ok(self.app.serve(SERVER_ADDR)?)
     }
 
     #[allow(clippy::new_ret_no_self)]

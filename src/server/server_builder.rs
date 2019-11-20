@@ -1,6 +1,5 @@
 use super::{Mode, Server};
 
-#[allow(clippy::module_name_repetitions)]
 pub struct ServerBuilder {
     pub(super) mode: Option<Mode>,
     pub(super) threads: Option<usize>,
@@ -8,7 +7,7 @@ pub struct ServerBuilder {
 
 impl ServerBuilder {
     pub fn build(self) -> Server {
-        Server::from(self)
+        self.into()
     }
 
     pub fn mode(mut self, mode: Mode) -> Self {
