@@ -15,6 +15,6 @@ pub enum Error {
 
 impl From<std::io::Error> for Error {
     fn from(err: std::io::Error) -> Self {
-        Error::IoError(err.into())
+        Self::IoError(err.into())
     }
 }
