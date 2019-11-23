@@ -13,7 +13,6 @@ fn build__using_threads() {
     assert_eq!(
         res,
         Server {
-            app: TideApp(tide::App::<()>::new()),
             mode: Mode::Asynchronous,
             threads
         }
@@ -30,14 +29,7 @@ fn build__using_mode() {
     let res = sut.build();
 
     // then the `Server` should be configured as expected
-    assert_eq!(
-        res,
-        Server {
-            app: TideApp(tide::App::<()>::new()),
-            mode,
-            threads: 1
-        }
-    )
+    assert_eq!(res, Server { mode, threads: 1 })
 }
 
 #[test]
@@ -51,12 +43,5 @@ fn build__using_mode_threads() {
     let res = sut.build();
 
     // then
-    assert_eq!(
-        res,
-        Server {
-            app: TideApp(tide::App::<()>::new()),
-            mode,
-            threads
-        }
-    )
+    assert_eq!(res, Server { mode, threads })
 }
