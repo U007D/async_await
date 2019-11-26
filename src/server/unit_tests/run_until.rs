@@ -9,7 +9,7 @@ fn run_until__time_elapsed_respected() {
 
     // when
     let start = Instant::now();
-    let res = sut.run_until(Event::TimeElapsed(delay));
+    let res = sut.serve();
 
     // then
     assert_ge!(Instant::now() - start, delay);

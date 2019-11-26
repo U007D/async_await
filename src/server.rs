@@ -7,7 +7,7 @@ mod server_builder;
 mod unit_tests;
 
 use crate::Result;
-use std::time::Instant;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 pub use {
     event::Event,
     mode::Mode,
@@ -31,27 +31,34 @@ impl Server {
         ServerBuilder::default()
     }
 
-    fn init_server(&mut self) -> &mut Self {
-        self.termination_event.map(|ev| match ev {
-            Event::TimeElapsed(_) => self.event_status = Some(Event::TimeElapsed(Instant::now())),
-        });
-        self
-    }
-
-    fn met_terminate_condition(&self) -> bool {}
-
     pub const fn mode(&self) -> &Mode {
         &self.mode
     }
 
-    pub fn run_until(mut self) -> Result<()> {
-        self.init_server().serve();
+    pub fn serve(mut self) -> Result<()> {
+        self.init_server();
+        while !self.should_terminate() {}
         Ok(())
     }
 
-    fn serve(&self) -> &Self {
-        met_terminate_condition.or_else(|| unimplemented!());
+    fn init_server(&mut self) -> &mut Self {
+        // Convert the current time to a `Duration` (since `UNIX_EPOCH`).  The goal was to avoid
+        // polluting the struct with status fields for every possible `Event` variant, so the
+        // current status is encoded as an `Event`.  This means that for time, neither the
+        // monotonically increasing `Instant` (preferred) nor (the non-monotonically increasing)
+        // `SystemTime` are suitable--so `now()` is converted to a `Duration`.
+        self.event_status = self.termination_event.map(|ev| match ev {
+            Event::TimeElapsed(_) => Event::TimeElapsed(
+                SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap_or_else(|_| Duration::default()),
+            ),
+        });
         self
+    }
+
+    fn should_terminate(&self) -> bool {
+        self.event_status.map_or_else(true, |dur| match)
     }
 
     #[inline]
