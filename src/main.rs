@@ -19,10 +19,11 @@
 
 mod consts;
 mod error;
+mod mpmc_queue;
 mod server;
 
 use pico_args::Arguments;
-pub use {consts::*, error::Error, server::Server};
+pub use {consts::*, error::Error, mpmc_queue::MpmcQueue, server::Server};
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
