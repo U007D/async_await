@@ -7,7 +7,7 @@ mod server_builder;
 mod unit_tests;
 
 use crate::Result;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 pub use {
     event::Event,
     mode::Mode,
@@ -18,7 +18,7 @@ pub use {
 
 #[derive(Debug)]
 pub struct Server {
-    event_status: Option<Event>,
+    termination_condition: Option<Event>,
     mode: Mode,
     msg_q: MsgQueue,
     termination_event: Option<Event>,
@@ -47,18 +47,24 @@ impl Server {
         // current status is encoded as an `Event`.  This means that for time, neither the
         // monotonically increasing `Instant` (preferred) nor (the non-monotonically increasing)
         // `SystemTime` are suitable--so `now()` is converted to a `Duration`.
-        self.event_status = self.termination_event.map(|ev| match ev {
-            Event::TimeElapsed(_) => Event::TimeElapsed(
-                SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .unwrap_or_else(|_| Duration::default()),
-            ),
+        self.termination_condition = self.termination_event.map(|ev| match ev {
+            Event::TimeElapsed(dur) => {
+                Event::TimeElapsed(SystemTime::now().duration_since(UNIX_EPOCH).map_or_else(
+                    |_| Duration::default(),
+                    |now| now.checked_add(dur).unwrap_or_else(|| Duration::default()),
+                ))
+            }
         });
         self
     }
 
     fn should_terminate(&self) -> bool {
-        self.event_status.map_or_else(true, |dur| match)
+        self.termination_condition.map_or_else(true, |tc| match tc {
+            Event::TimeElapsed(deadline) => match Instant::now().checked_sub(deadline) {
+                Some(_) => true,
+                None => false,
+            },
+        })
     }
 
     #[inline]

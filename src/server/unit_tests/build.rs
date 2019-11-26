@@ -13,7 +13,7 @@ fn build__using_threads() {
     assert_eq!(
         res,
         Server {
-            event_status: None,
+            termination_condition: None,
             msg_q: MsgQueue::new(),
             mode: Mode::Asynchronous,
             termination_event: None,
@@ -35,7 +35,7 @@ fn build__using_mode() {
     assert_eq!(
         res,
         Server {
-            event_status: None,
+            termination_condition: None,
             msg_q: MsgQueue::new(),
             mode,
             termination_event: None,
@@ -58,7 +58,7 @@ fn build__using_mode_threads() {
     assert_eq!(
         res,
         Server {
-            event_status: None,
+            termination_condition: None,
             msg_q: MsgQueue::new(),
             mode,
             termination_event: None,
