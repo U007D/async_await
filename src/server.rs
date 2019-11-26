@@ -7,6 +7,7 @@ mod server_builder;
 mod unit_tests;
 
 use crate::Result;
+use std::time::Instant;
 pub use {
     event::Event,
     mode::Mode,
@@ -17,8 +18,9 @@ pub use {
 
 #[derive(Debug)]
 pub struct Server {
-    msg_q: MsgQueue,
+    event_status: Option<Event>,
     mode: Mode,
+    msg_q: MsgQueue,
     termination_event: Option<Event>,
     threads: usize,
 }
@@ -29,22 +31,27 @@ impl Server {
         ServerBuilder::default()
     }
 
-    fn init_server(&self) -> &Self {
-        unimplemented!()
+    fn init_server(&mut self) -> &mut Self {
+        self.termination_event.map(|ev| match ev {
+            Event::TimeElapsed(_) => self.event_status = Some(Event::TimeElapsed(Instant::now())),
+        });
+        self
     }
 
-    #[inline]
+    fn met_terminate_condition(&self) -> bool {}
+
     pub const fn mode(&self) -> &Mode {
         &self.mode
     }
 
-    pub fn run_until(mut self, _event: Event) -> Result<()> {
+    pub fn run_until(mut self) -> Result<()> {
         self.init_server().serve();
         Ok(())
     }
 
     fn serve(&self) -> &Self {
-        unimplemented!()
+        met_terminate_condition.or_else(|| unimplemented!());
+        self
     }
 
     #[inline]
@@ -56,8 +63,9 @@ impl Server {
 impl From<ServerBuilder> for Server {
     fn from(builder: ServerBuilder) -> Self {
         Self {
-            msg_q: builder.msg_q,
+            event_status: None,
             mode: builder.mode.unwrap_or_else(|| Mode::Asynchronous),
+            msg_q: builder.msg_q,
             termination_event: builder.termination_event,
             threads: builder.threads.unwrap_or_else(|| 1),
         }

@@ -17,10 +17,6 @@ impl MsgQueue {
             len: AtomicUsize::default(),
         }
     }
-
-    pub fn len(&self) -> usize {
-        self.len.load(Ordering::Acquire)
-    }
 }
 
 impl MpmcQueue for MsgQueue {
@@ -32,6 +28,7 @@ impl MpmcQueue for MsgQueue {
                 Steal::Empty => break None,
                 Steal::Retry => (),
                 Steal::Success(item) => {
+                    // Decrement the message count in the queue (and check for overflow)
                     let prev_value = self.len.fetch_sub(1, Ordering::Release);
                     debug_assert_ne!(prev_value, 0);
 
@@ -42,10 +39,11 @@ impl MpmcQueue for MsgQueue {
     }
 
     fn push(&self, msg: Msg) -> &Self {
+        // Increment the message count in the queue (and check for overflow)
         let prev_val = self.len.fetch_add(1, Ordering::Release);
         debug_assert_ne!(prev_val, usize::max_value());
 
         self.queue.push(msg);
-        &self
+        self
     }
 }
