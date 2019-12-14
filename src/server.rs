@@ -7,7 +7,7 @@ mod server_builder;
 mod unit_tests;
 
 use crate::Result;
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 pub use {
     event::Event,
     mode::Mode,
@@ -18,15 +18,14 @@ pub use {
 
 #[derive(Debug)]
 pub struct Server {
-    termination_condition: Option<Event>,
     mode: Mode,
     msg_q: MsgQueue,
-    termination_event: Option<Event>,
+    termination_condition: Option<Event>,
     threads: usize,
 }
 
 impl Server {
-    #[allow(clippy::new_ret_no_self)]
+    #[allow(clippy::new_ret_no_self, clippy::must_use_candidate)]
     pub fn new() -> ServerBuilder {
         ServerBuilder::default()
     }
@@ -36,35 +35,38 @@ impl Server {
     }
 
     pub fn serve(mut self) -> Result<()> {
-        self.init_server();
+        self.init_server()?;
         while !self.should_terminate() {}
         Ok(())
     }
 
-    fn init_server(&mut self) -> &mut Self {
-        // Convert the current time to a `Duration` (since `UNIX_EPOCH`).  The goal was to avoid
-        // polluting the struct with status fields for every possible `Event` variant, so the
-        // current status is encoded as an `Event`.  This means that for time, neither the
-        // monotonically increasing `Instant` (preferred) nor (the non-monotonically increasing)
-        // `SystemTime` are suitable--so `now()` is converted to a `Duration`.
-        self.termination_condition = self.termination_event.map(|ev| match ev {
-            Event::TimeElapsed(dur) => {
-                Event::TimeElapsed(SystemTime::now().duration_since(UNIX_EPOCH).map_or_else(
-                    |_| Duration::default(),
-                    |now| now.checked_add(dur).unwrap_or_else(|| Duration::default()),
-                ))
-            }
-        });
-        self
+    fn init_server(&mut self) -> Result<&mut Self> {
+        // Convert TimeElapsed(Duration) from relative to absolute value of now + the relative
+        // duration.
+        if let Some(event) = self.termination_condition {
+            let deadline = match event {
+                Event::TimeElapsed(duration) => {
+                    SystemTime::now().duration_since(UNIX_EPOCH).map(|d| {
+                        Event::TimeElapsed(
+                            d.checked_add(duration)
+                                .map_or_else(Duration::default, |d| d),
+                        )
+                    })
+                }
+            };
+            self.termination_condition = Some(deadline?);
+        }
+        Ok(self)
     }
 
     fn should_terminate(&self) -> bool {
-        self.termination_condition.map_or_else(true, |tc| match tc {
-            Event::TimeElapsed(deadline) => match Instant::now().checked_sub(deadline) {
-                Some(_) => true,
-                None => false,
-            },
-        })
+        self.termination_condition
+            .map_or(false, |event| match event {
+                Event::TimeElapsed(deadline) => SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .ok()
+                    .map_or(true, |now| deadline.checked_sub(now).is_none()),
+            })
     }
 
     #[inline]
@@ -76,10 +78,9 @@ impl Server {
 impl From<ServerBuilder> for Server {
     fn from(builder: ServerBuilder) -> Self {
         Self {
-            event_status: None,
             mode: builder.mode.unwrap_or_else(|| Mode::Asynchronous),
             msg_q: builder.msg_q,
-            termination_event: builder.termination_event,
+            termination_condition: builder.termination_condition,
             threads: builder.threads.unwrap_or_else(|| 1),
         }
     }
@@ -88,7 +89,7 @@ impl From<ServerBuilder> for Server {
 impl PartialEq for Server {
     fn eq(&self, rhs: &Self) -> bool {
         self.mode == rhs.mode
-            && self.termination_event == rhs.termination_event
+            && self.termination_condition == rhs.termination_condition
             && self.threads == rhs.threads
     }
 }

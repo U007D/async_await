@@ -2,10 +2,12 @@ use super::*;
 use std::time::{Duration, Instant};
 
 #[test]
-fn run_until__time_elapsed_respected() {
+fn serve__time_elapsed_termination_condition_respected() {
     // given a default Server instance
     let delay = Duration::from_millis(5);
-    let sut = Server::new().build();
+    let sut = Server::new()
+        .termination_condition(Event::TimeElapsed(delay))
+        .build();
 
     // when
     let start = Instant::now();

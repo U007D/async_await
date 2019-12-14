@@ -5,7 +5,7 @@ use crate::server::{Event, MsgQueue};
 pub struct ServerBuilder {
     pub(super) msg_q: MsgQueue,
     pub(super) mode: Option<Mode>,
-    pub(super) termination_event: Option<Event>,
+    pub(super) termination_condition: Option<Event>,
     pub(super) threads: Option<usize>,
 }
 
@@ -19,8 +19,8 @@ impl ServerBuilder {
         self
     }
 
-    pub fn termination_event(mut self, event: Event) -> Self {
-        self.termination_event = Some(event);
+    pub fn termination_condition(mut self, event: Event) -> Self {
+        self.termination_condition = Some(event);
         self
     }
 
@@ -35,7 +35,7 @@ impl Default for ServerBuilder {
         Self {
             msg_q: MsgQueue::new(),
             mode: None,
-            termination_event: None,
+            termination_condition: None,
             threads: None,
         }
     }
@@ -44,7 +44,7 @@ impl Default for ServerBuilder {
 impl PartialEq for ServerBuilder {
     fn eq(&self, rhs: &Self) -> bool {
         self.mode == rhs.mode
-            && self.termination_event == rhs.termination_event
+            && self.termination_condition == rhs.termination_condition
             && self.threads == rhs.threads
     }
 }
