@@ -13,7 +13,11 @@ pub enum Error {
     ArgNotConvertibleToUtf8 { value: std::ffi::OsString },
     #[display(fmt = "{}: {:?}", msg::ERR_IO_ERROR_CAUSED_BY, _0)]
     IoError(IoError),
-    #[display(fmt = "{}: {:?}", msg::ERR_SYSTEM_CLOCK_ADJUSTED_INTO_PAST, _0)]
+    #[display(
+        fmt = "{}: {:?}",
+        msg::ERR_SYSTEM_CLOCK_ADJUSTED_PRIOR_TO_UNIX_EPOCH,
+        _0
+    )]
     SystemTimeError(SystemTimeError),
 }
 
