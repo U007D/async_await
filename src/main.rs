@@ -24,23 +24,24 @@
 //! feature.
 //!
 //! There are a lot of misconceptions around `async/await`, particularly around the differences
-//! between asynchrony, concurrency and parallelism by simulating a web server.  This application is
+//! between asynchrony, concurrency and parallelism by simulating a web a_a_server_tide_adapter.  This application is
 //! designed to help clarify what `async/await` is, and what it is not.
 //!
 //! ## How to Use
-//! Invoke `async_await` specifying whether the server simulation should be single-threaded or
-//! multi-threaded and independently, whether the server should be synchronous or asynchronous.
+//! Invoke `async_await` specifying whether the a_a_server_tide_adapter simulation should be single-threaded or
+//! multi-threaded and independently, whether the a_a_server_tide_adapter should be synchronous or asynchronous.
 //! The application will measure key performance statistics and will export the relevant information
 //! in a format that should be easy to translate into a graph.
 //!
 //! Type `async_await --help` or `async_await -h` on the command line for full help instructions.
+mod a_a_server_tide_adapter;
 mod consts;
 mod error;
 mod mpmc_queue;
 mod server;
 
 use pico_args::Arguments;
-pub use {consts::*, error::Error, mpmc_queue::MpmcQueue, server::Server};
+pub use {consts::*, error::Error, mpmc_queue::MpmcQueue};
 
 /// Convenience alias for the `Result` type encoding `async_await::error::Error` as the default
 /// error type.

@@ -12,7 +12,7 @@ fn build__using_threads() {
     // then the `Server` should be configured as expected
     assert_eq!(
         res,
-        Server {
+        AAServerTideAdapter {
             msg_q: MsgQueue::new(),
             mode: Mode::Asynchronous,
             termination_condition: None,
@@ -33,7 +33,7 @@ fn build__using_mode() {
     // then the `Server` should be configured as expected
     assert_eq!(
         res,
-        Server {
+        AAServerTideAdapter {
             msg_q: MsgQueue::new(),
             mode,
             termination_condition: None,
@@ -55,7 +55,7 @@ fn build__using_mode_threads() {
     // then
     assert_eq!(
         res,
-        Server {
+        AAServerTideAdapter {
             msg_q: MsgQueue::new(),
             mode,
             termination_condition: None,
