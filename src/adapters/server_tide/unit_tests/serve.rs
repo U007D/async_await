@@ -5,7 +5,7 @@ use std::time::{Duration, Instant};
 fn serve__time_elapsed_termination_condition_respected() {
     // given a default Server instance
     let delay = Duration::from_millis(5);
-    let sut = Server::new()
+    let sut = ServerTide::new()
         .termination_condition(Event::TimeElapsed(delay))
         .build();
 

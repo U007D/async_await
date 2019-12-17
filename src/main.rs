@@ -16,7 +16,7 @@
 //#![warn(clippy::cargo, clippy::restriction, missing_docs, warnings)]
 //#![deny(warnings)]
 
-//! # async_await
+//! # `async_await`
 //!
 //! ## Overview
 //! This is a exemplar application designed to demonstrate Rust's
@@ -24,24 +24,24 @@
 //! feature.
 //!
 //! There are a lot of misconceptions around `async/await`, particularly around the differences
-//! between asynchrony, concurrency and parallelism by simulating a web a_a_server_tide_adapter.  This application is
+//! between asynchrony, concurrency and parallelism by simulating a web `server_tide`.  This application is
 //! designed to help clarify what `async/await` is, and what it is not.
 //!
 //! ## How to Use
-//! Invoke `async_await` specifying whether the a_a_server_tide_adapter simulation should be single-threaded or
-//! multi-threaded and independently, whether the a_a_server_tide_adapter should be synchronous or asynchronous.
+//! Invoke `async_await` specifying whether the `server_tide` simulation should be single-threaded or
+//! multi-threaded and independently, whether the `server_tide` should be synchronous or asynchronous.
 //! The application will measure key performance statistics and will export the relevant information
 //! in a format that should be easy to translate into a graph.
 //!
 //! Type `async_await --help` or `async_await -h` on the command line for full help instructions.
-mod a_a_server_tide_adapter;
+mod adapters;
 mod consts;
 mod error;
 mod mpmc_queue;
-mod server;
+mod ports;
 
 use pico_args::Arguments;
-pub use {consts::*, error::Error, mpmc_queue::MpmcQueue};
+pub use {consts::*, error::Error, mpmc_queue::MpmcQueue, ports::server::prelude};
 
 /// Convenience alias for the `Result` type encoding `async_await::error::Error` as the default
 /// error type.

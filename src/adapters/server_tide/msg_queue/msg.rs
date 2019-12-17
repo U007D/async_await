@@ -1,4 +1,4 @@
-use crate::a_a_server_tide_adapter::Recipient;
+use crate::adapters::server_tide::Recipient;
 
 #[derive(Debug, Clone, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Msg {

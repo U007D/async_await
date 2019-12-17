@@ -1,11 +1,14 @@
 mod event;
 mod mode;
+pub mod prelude;
 mod server_builder;
 use crate::Result;
-pub use {event::Event, mode::Mode, server_builder::ServerBuilder};
+pub use prelude::*;
 
 pub trait Server: PartialEq {
-    fn new<SB: ServerBuilder>() -> SB;
+    type ServerBuilder: ServerBuilder;
+    
+    fn new() -> Self::ServerBuilder;
     fn mode(&self) -> &Mode;
     fn serve(self) -> Result<()>;
     fn threads(&self) -> usize;
