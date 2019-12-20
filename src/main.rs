@@ -34,11 +34,8 @@
 //! in a format that should be easy to translate into a graph.
 //!
 //! Type `async_await --help` or `async_await -h` on the command line for full help instructions.
-mod adapters;
 mod consts;
 mod error;
-mod mpmc_queue;
-mod ports;
 
 use pico_args::Arguments;
 pub use {consts::*, error::Error, mpmc_queue::MpmcQueue, ports::server::prelude};
