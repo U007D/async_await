@@ -12,36 +12,18 @@
     clippy::option_unwrap_used,
     clippy::result_unwrap_used
 )]
-// Uncomment b4 ship to find possibly redundant crates, debug remnants, missing license files & more
+// Uncomment before ship to find redundant crates, debug remnants, missing license files & more
 //#![warn(clippy::cargo, clippy::restriction, missing_docs, warnings)]
 //#![deny(warnings)]
 
-//! # `async_await`
-//!
-//! ## Overview
-//! This is a exemplar application designed to demonstrate Rust's
-//! [`async/await`](https://rust-lang.github.io/async-book/01_getting_started/04_async_await_primer.html)
-//! feature.
-//!
-//! There are a lot of misconceptions around `async/await`, particularly around the differences
-//! between asynchrony, concurrency and parallelism by simulating a web `server_tide`.  This application is
-//! designed to help clarify what `async/await` is, and what it is not.
-//!
-//! ## How to Use
-//! Invoke `async_await` specifying whether the `server_tide` simulation should be single-threaded or
-//! multi-threaded and independently, whether the `server_tide` should be synchronous or asynchronous.
-//! The application will measure key performance statistics and will export the relevant information
-//! in a format that should be easy to translate into a graph.
-//!
-//! Type `async_await --help` or `async_await -h` on the command line for full help instructions.
 mod consts;
 mod error;
+mod server;
 
+use error::Error;
 use pico_args::Arguments;
-pub use {consts::*, error::Error, mpmc_queue::MpmcQueue, ports::server::prelude};
 
-/// Convenience alias for the `Result` type encoding `async_await::error::Error` as the default
-/// error type.
+/// Convenience alias for the `Result` type encoding `error::Error` as the default error type.
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 fn main() -> Result<()> {
