@@ -7,36 +7,42 @@ mod unit_tests;
 use crate::{consts::msg, Result};
 pub use bind_network_interface::BindNetworkInterface;
 pub use server_builder::ServerBuilder;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::marker::PhantomData;
 use std::{
     net::{IpAddr, Ipv4Addr},
+    sync::atomic::{AtomicBool, Ordering},
+    thread,
     time::Instant,
 };
 use terminate_condition::TerminateCondition;
 
 #[derive(Debug, PartialEq)]
-pub struct Server {
+pub struct Server<'a> {
     bind_network_interface: BindNetworkInterface,
     ip_addr: Option<IpAddr>,
     started: bool,
     terminate_condition: TerminateCondition,
+    phantom: PhantomData<&'a ()>,
 }
 
-impl Server {
+impl<'a> Server<'a> {
     #[allow(clippy::new_ret_no_self)]
     pub fn new() -> ServerBuilder {
         ServerBuilder::default()
     }
+
+    pub fn block(&self) {}
 
     fn set_ip_addr(&mut self) -> Result<&mut Self> {
         self.ip_addr = Some(IpAddr::V4(Ipv4Addr::LOCALHOST));
         Ok(self)
     }
 
-    pub fn start(&mut self) -> Result<IpAddr> {
+    pub fn start(&'a mut self) -> Result<IpAddr> {
         if !self.started {
             self.started = true;
-            self.set_ip_addr()?.process_reqs()?;
+            self.set_ip_addr()?;
+            thread::spawn(|| -> Result<&'a Self> { self.process_msgs() });
         }
 
         Ok(self
@@ -45,11 +51,11 @@ impl Server {
     }
 
     #[inline]
-    fn process_next_req(&mut self) -> Result<()> {
+    fn process_next_req(&'a mut self) -> Result<()> {
         Ok(())
     }
 
-    fn process_reqs(&mut self) -> Result<&mut Self> {
+    fn process_msgs(&'a mut self) -> Result<&Self> {
         match self.terminate_condition {
             TerminateCondition::Never => loop {
                 self.process_next_req()?;

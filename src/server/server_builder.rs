@@ -15,7 +15,7 @@ impl ServerBuilder {
         self
     }
 
-    pub fn build(self) -> Server {
+    pub fn build<'a>(self) -> Server<'a> {
         Server {
             bind_network_interface: self
                 .bind_network_interface
@@ -25,6 +25,7 @@ impl ServerBuilder {
             terminate_condition: self
                 .terminate_condition
                 .unwrap_or(TerminateCondition::Never),
+            phantom: PhantomData,
         }
     }
 
