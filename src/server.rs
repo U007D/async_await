@@ -8,7 +8,6 @@ use crate::{consts::msg, Result};
 pub use bind_network_interface::BindNetworkInterface;
 pub use server_builder::ServerBuilder;
 use std::{
-    marker::PhantomData,
     net::{IpAddr, Ipv4Addr},
     thread::{self, JoinHandle},
     time::Instant,
@@ -16,23 +15,17 @@ use std::{
 use terminate_condition::TerminateCondition;
 
 #[derive(Debug)]
-pub struct Server<'a> {
+pub struct Server {
     bind_network_interface: BindNetworkInterface,
     ip_addr: Option<IpAddr>,
-    join_handle: Option<JoinHandle<Result<()>>>,
     started: bool,
     terminate_condition: TerminateCondition,
-    phantom: PhantomData<&'a ()>,
 }
 
-impl<'a> Server<'a> {
+impl Server {
     #[allow(clippy::new_ret_no_self)]
     pub fn new() -> ServerBuilder {
         ServerBuilder::default()
-    }
-
-    pub fn block(&self) -> Option<Result<()>> {
-        self.join_handle.and_then(|jh| jh.join()).or(None)
     }
 
     fn set_ip_addr(&mut self) -> Result<&mut Self> {
@@ -46,8 +39,8 @@ impl<'a> Server<'a> {
             self.started = true;
             self.set_ip_addr()?;
             let terminate_condition = self.terminate_condition;
-            self.join_handle =
-                thread::spawn(move || -> Result<()> { Self::process_msgs(terminate_condition) });
+            thread::spawn(move || -> Result<()> { Self::process_msgs(terminate_condition) })
+                .join()?;
         }
 
         Ok(self

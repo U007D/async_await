@@ -6,3 +6,5 @@ pub const ERR_SYSTEM_CLOCK_ADJUSTED_PRIOR_TO_UNIX_EPOCH: &str =
 pub const DBG_TIDE_APP: &str = "tide::App<()>";
 pub const ERR_INTERNAL_IP_ADDR_NOT_SET: &str =
     "Internal error: `Server::ip_addr` not set.  It must be set in order to start the server.";
+pub const ERR_INTERNAL_SPAWNED_THREAD_NOT_JOINABLE: &str =
+    "Internal error: Could not block on spawned thread";
