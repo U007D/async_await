@@ -7,19 +7,19 @@ mod unit_tests;
 use crate::{consts::msg, Result};
 pub use bind_network_interface::BindNetworkInterface;
 pub use server_builder::ServerBuilder;
-use std::marker::PhantomData;
 use std::{
+    marker::PhantomData,
     net::{IpAddr, Ipv4Addr},
-    sync::atomic::{AtomicBool, Ordering},
-    thread,
+    thread::{self, JoinHandle},
     time::Instant,
 };
 use terminate_condition::TerminateCondition;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct Server<'a> {
     bind_network_interface: BindNetworkInterface,
     ip_addr: Option<IpAddr>,
+    join_handle: Option<JoinHandle<Result<()>>>,
     started: bool,
     terminate_condition: TerminateCondition,
     phantom: PhantomData<&'a ()>,
@@ -31,18 +31,23 @@ impl<'a> Server<'a> {
         ServerBuilder::default()
     }
 
-    pub fn block(&self) {}
+    pub fn block(&self) -> Option<Result<()>> {
+        self.join_handle.and_then(|jh| jh.join()).or(None)
+    }
 
     fn set_ip_addr(&mut self) -> Result<&mut Self> {
         self.ip_addr = Some(IpAddr::V4(Ipv4Addr::LOCALHOST));
         Ok(self)
     }
 
-    pub fn start(&'a mut self) -> Result<IpAddr> {
+    pub fn start(&mut self) -> Result<IpAddr> {
+        // atomic CAS not required because this entire method is single threaded (`&mut self`)
         if !self.started {
             self.started = true;
             self.set_ip_addr()?;
-            thread::spawn(|| -> Result<&'a Self> { self.process_msgs() });
+            let terminate_condition = self.terminate_condition;
+            self.join_handle =
+                thread::spawn(move || -> Result<()> { Self::process_msgs(terminate_condition) });
         }
 
         Ok(self
@@ -51,24 +56,24 @@ impl<'a> Server<'a> {
     }
 
     #[inline]
-    fn process_next_req(&'a mut self) -> Result<()> {
+    fn process_next_req() -> Result<()> {
         Ok(())
     }
 
-    fn process_msgs(&'a mut self) -> Result<&Self> {
-        match self.terminate_condition {
+    fn process_msgs(terminate_condition: TerminateCondition) -> Result<()> {
+        match terminate_condition {
             TerminateCondition::Never => loop {
-                self.process_next_req()?;
+                Self::process_next_req()?;
             },
 
-            TerminateCondition::AfterDuration(launch_duration_limit) => {
-                let launch_instant = Instant::now();
+            TerminateCondition::AfterDuration(run_duration_limit) => {
+                let start_instant = Instant::now();
 
-                while Instant::now() - launch_instant < launch_duration_limit {
-                    self.process_next_req()?;
+                while Instant::now() - start_instant < run_duration_limit {
+                    Self::process_next_req()?;
                 }
             }
         };
-        Ok(self)
+        Ok(())
     }
 }
