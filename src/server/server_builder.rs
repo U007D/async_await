@@ -2,30 +2,35 @@
 mod unit_tests;
 
 use super::*;
+use crate::consts::{DEFAULT_IP_ADDR, DEFAULT_PORT};
 
 #[derive(Debug, Default, PartialEq)]
 pub struct ServerBuilder {
-    bind_network_interface: Option<BindNetworkInterface>,
+    ip_addr: Option<IpAddr>,
+    port: Option<u16>,
     terminate_condition: Option<TerminateCondition>,
 }
 
 impl ServerBuilder {
-    pub fn bind_network_interface(mut self, bind_network_interface: BindNetworkInterface) -> Self {
-        self.bind_network_interface = Some(bind_network_interface);
-        self
-    }
-
     pub fn build(self) -> Server {
         Server {
-            bind_network_interface: self
-                .bind_network_interface
-                .unwrap_or(BindNetworkInterface::Any),
-            ip_addr: None,
-            started: false,
+            ip_addr: self.ip_addr.unwrap_or(DEFAULT_IP_ADDR),
+            tcp_listener: None,
+            port: self.port.unwrap_or(DEFAULT_PORT),
             terminate_condition: self
                 .terminate_condition
                 .unwrap_or(TerminateCondition::Never),
         }
+    }
+
+    pub fn ip_address(mut self, ip_addr: IpAddr) -> Self {
+        self.ip_addr = Some(ip_addr);
+        self
+    }
+
+    pub fn port(mut self, port: u16) -> Self {
+        self.port = Some(port);
+        self
     }
 
     pub fn terminate_condition(mut self, terminate_condition: TerminateCondition) -> Self {

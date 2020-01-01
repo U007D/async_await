@@ -1,25 +1,22 @@
 #![allow(non_snake_case)]
 use super::*;
 use more_asserts::*;
-use std::{
-    net::{IpAddr, Ipv4Addr},
-    time::{Duration, Instant},
-};
+use std::time::{Duration, Instant};
 
 #[test]
-fn start__returns_expected_ip_address() -> Result<()> {
+fn start__returns_expected_value() -> Result<()> {
     // given a server instance configured to bind to the localhost network interface
     let expected_delay = Duration::from_millis(0);
+    let expected_result = ();
     let mut sut = Server::new()
         .terminate_condition(TerminateCondition::AfterDuration(expected_delay))
-        .bind_network_interface(BindNetworkInterface::LocalHost)
         .build();
 
     // when the server is started
     let res = sut.start()?;
 
     // then the ip address returned should be the localhost address
-    assert_ge!(res, IpAddr::V4(Ipv4Addr::LOCALHOST));
+    assert_ge!(res, expected_result);
     Ok(())
 }
 

@@ -1,19 +1,20 @@
 use super::*;
+use std::net::{IpAddr, Ipv4Addr};
 use std::time::Duration;
 
 #[test]
 fn build__respects_bind_network_interface() {
     // setup
-    let expected_bind_network_interface = BindNetworkInterface::Any;
+    let expected_ip_addr = IpAddr::from(Ipv4Addr::LOCALHOST);
 
-    // given a `ServerBuilder` configured with a particular `BindNetworkInterface` mode
-    let sut = Server::new().bind_network_interface(expected_bind_network_interface);
+    // given a `ServerBuilder` configured with a particular IP address
+    let sut = Server::new().ip_address(expected_ip_addr);
 
     // when constructed
     let res = sut.build();
 
     // then the resulting server should be configured as expected
-    assert_eq!(res.bind_network_interface, expected_bind_network_interface);
+    assert_eq!(res.ip_addr, expected_ip_addr);
 }
 
 #[test]

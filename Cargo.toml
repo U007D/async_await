@@ -17,6 +17,8 @@ pico-args = "0.3.0"
 tide = "0.4.0"
 num_cpus = "1.11.1"
 more-asserts = "0.2.1"
+async-std = "1.4.0"
+futures = "0.3.1"
 
 [dev-dependencies]
 all_asserts = "1.0.0"

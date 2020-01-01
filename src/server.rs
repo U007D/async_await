@@ -1,24 +1,22 @@
-mod bind_network_interface;
 mod server_builder;
 mod terminate_condition;
 #[cfg(test)]
 mod unit_tests;
 
-use crate::{consts::msg, Result};
-pub use bind_network_interface::BindNetworkInterface;
-pub use server_builder::ServerBuilder;
-use std::{
-    net::{IpAddr, Ipv4Addr},
-    thread::{self, JoinHandle},
-    time::Instant,
+use crate::Result;
+use async_std::{
+    io,
+    net::{IpAddr, SocketAddr, TcpListener},
 };
+use futures::executor::block_on;
+pub use server_builder::ServerBuilder;
 use terminate_condition::TerminateCondition;
 
 #[derive(Debug)]
 pub struct Server {
-    bind_network_interface: BindNetworkInterface,
-    ip_addr: Option<IpAddr>,
-    started: bool,
+    ip_addr: IpAddr,
+    tcp_listener: Option<TcpListener>,
+    port: u16,
     terminate_condition: TerminateCondition,
 }
 
@@ -28,45 +26,32 @@ impl Server {
         ServerBuilder::default()
     }
 
-    fn set_ip_addr(&mut self) -> Result<&mut Self> {
-        self.ip_addr = Some(IpAddr::V4(Ipv4Addr::LOCALHOST));
-        Ok(self)
+    async fn init_tcp_listener(&self) -> Result<TcpListener> {
+        Ok(TcpListener::bind(SocketAddr::new(self.ip_addr, self.port)).await?)
     }
-
-    pub fn start(&mut self) -> Result<IpAddr> {
-        // atomic CAS not required because this entire method is single threaded (`&mut self`)
-        if !self.started {
-            self.started = true;
-            self.set_ip_addr()?;
-            let terminate_condition = self.terminate_condition;
-            thread::spawn(move || -> Result<()> { Self::process_msgs(terminate_condition) })
-                .join()?;
-        }
-
-        Ok(self
-            .ip_addr
-            .unwrap_or_else(|| unreachable!(msg::ERR_INTERNAL_IP_ADDR_NOT_SET)))
-    }
-
     #[inline]
-    fn process_next_req() -> Result<()> {
+    async fn process_msgs() -> Result<()> {
         Ok(())
     }
 
-    fn process_msgs(terminate_condition: TerminateCondition) -> Result<()> {
-        match terminate_condition {
+    async fn run(&self) -> Result<()> {
+        match self.terminate_condition {
             TerminateCondition::Never => loop {
-                Self::process_next_req()?;
+                Self::process_msgs().await?
             },
-
-            TerminateCondition::AfterDuration(run_duration_limit) => {
-                let start_instant = Instant::now();
-
-                while Instant::now() - start_instant < run_duration_limit {
-                    Self::process_next_req()?;
-                }
+            TerminateCondition::AfterDuration(limit) => {
+                io::timeout(limit, Self::process_msgs().await?)
+                    .await
+                    .unwrap_or_else(|_| Ok(()))?
             }
-        };
-        Ok(())
+        }
+    }
+
+    fn start(&mut self) -> Result<()> {
+        block_on(async {
+            self.tcp_listener = Some(self.init_tcp_listener().await?);
+            self.run().await?;
+            Ok(())
+        })
     }
 }
