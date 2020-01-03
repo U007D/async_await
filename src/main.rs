@@ -1,4 +1,4 @@
-#![feature(result_map_or_else)]
+//#![feature(result_map_or_else)]
 #![warn(clippy::all, clippy::nursery, clippy::pedantic, rust_2018_idioms)]
 #![forbid(bare_trait_objects)]
 #![allow(clippy::match_bool)]
@@ -19,17 +19,55 @@
 
 mod consts;
 mod error;
-mod server;
-
+//mod server;
+//
 use error::Error;
-use pico_args::Arguments;
-
-/// Convenience alias for the `Result` type encoding `error::Error` as the default error type.
+//use pico_args::Arguments;
+//
+///// Convenience alias for the `Result` type encoding `error::Error` as the default error type.
 pub type Result<T, E = Error> = std::result::Result<T, E>;
+//
+//fn main() -> Result<()> {
+//    // see examples/pico_args.rs for argument parsing example
+//    let _args_parser = Arguments::from_env();
+//
+//    Ok(())
+//}
+
+//use async_std::{
+//    io,
+//    net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener},
+//};
+//use consts::*;
+//use futures_executor;
+//
+//type Result<T, E = Error> = std::result::Result<T, E>;
+//
+//fn main() -> Result<()> {
+//    start()
+//}
+//
+//fn start() -> Result<()> {
+//    futures_executor::block_on(async {
+//        let tcp_listener =
+//            TcpListener::bind(SocketAddr::new(DEFAULT_IP_ADDR, DEFAULT_PORT)).await?;
+//
+//        Ok::<(), Error>(())
+//    });
+//
+//    Ok(())
+//}
+
+use futures_executor::block_on;
+use std::time::Duration;
+use tokio::time::{timeout_at, Instant};
+
+async fn do_something() -> Result<(), Error> {
+    Ok(())
+}
 
 fn main() -> Result<()> {
-    // see examples/pico_args.rs for argument parsing example
-    let _args_parser = Arguments::from_env();
-
-    Ok(())
+    let deadline = Instant::now() + Duration::from_secs(5);
+    // This async scope times out after 5 seconds.
+    block_on(timeout_at(deadline, do_something()))?
 }
