@@ -3,13 +3,16 @@ mod terminate_condition;
 #[cfg(test)]
 mod unit_tests;
 
-use crate::Result;
+use crate::{Error, Result};
 use async_std::{
-    io,
+    future::{self, Future},
     net::{IpAddr, SocketAddr, TcpListener},
+    prelude::FutureExt,
 };
-use futures::executor::block_on;
+use futures_executor::block_on;
 pub use server_builder::ServerBuilder;
+use std::net::{SocketAddr, TcpListener};
+use std::time::{Duration, Instant};
 use terminate_condition::TerminateCondition;
 
 #[derive(Debug)]
@@ -26,32 +29,58 @@ impl Server {
         ServerBuilder::default()
     }
 
-    async fn init_tcp_listener(&self) -> Result<TcpListener> {
-        Ok(TcpListener::bind(SocketAddr::new(self.ip_addr, self.port)).await?)
-    }
-    #[inline]
     async fn process_msgs() -> Result<()> {
         Ok(())
     }
 
-    async fn run(&self) -> Result<()> {
+    fn run_duration(&self) -> Option<Duration> {
         match self.terminate_condition {
-            TerminateCondition::Never => loop {
-                Self::process_msgs().await?
-            },
-            TerminateCondition::AfterDuration(limit) => {
-                io::timeout(limit, Self::process_msgs().await?)
-                    .await
-                    .unwrap_or_else(|_| Ok(()))?
-            }
+            TerminateCondition::Never => None,
+            TerminateCondition::AfterDuration(duration) => Some(duration),
+        }
+    }
+
+    async fn time_limit_elapsed(duration: Option<Duration>) -> Result<()> {
+        let start = Instant::now();
+        loop {
+            duration
+                .map_or_else(
+                    || future::pending(),
+                    |time_limit| {
+                        let elapsed_time = Instant::now() - start;
+                        match elapsed_time < time_limit {
+                            true => future::pending::<Result<()>>(),
+                            false => future::ready(Ok(())),
+                        }
+                    },
+                )
+                .await;
         }
     }
 
     fn start(&mut self) -> Result<()> {
         block_on(async {
-            self.tcp_listener = Some(self.init_tcp_listener().await?);
-            self.run().await?;
-            Ok(())
+            self.tcp_listener = {
+                socket_addr = SocketAddr::new(self.ip_addr, self.port);
+                Some(TcpListener::bind(socket_addr)).await?
+            };
+
+            let mut fut_builder = Self::process_msgs();
+
+            match self.terminate_condition {
+                TerminateCondition::Never => (),
+                TerminateCondition::AfterDuration(dur) => fut_builder = fut_builder.timeout(dur),
+            }
+            let fut = fut_builder;
+
+            fut.await.map_or_else(
+                |err| match err {
+                    Error::Timeout(_) => Ok(()),
+                    e => Err(e),
+                },
+                |ok| Ok(ok),
+            );
+            Ok(res?)
         })
     }
 }

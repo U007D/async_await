@@ -3,7 +3,11 @@ mod io_error;
 use crate::consts::msg;
 use derive_more::{Display, From};
 use io_error::IoError;
-use std::{any::Any, convert::From, time::SystemTimeError};
+use std::{
+    any::Any,
+    convert::From,
+    time::{Duration, SystemTimeError},
+};
 
 #[allow(clippy::pub_enum_variant_names)]
 #[derive(Debug, Display, From)]
@@ -20,6 +24,8 @@ pub enum Error {
     SystemTimeError(SystemTimeError),
     #[display(fmt = "{}: {:?}", msg::ERR_INTERNAL_SPAWNED_THREAD_NOT_JOINABLE, _0)]
     SpawnedThreadNotJoinable(Box<dyn Any + Send + 'static>),
+    #[display(fmt = "{}: {:?}", msg::ERR_TIMEOUT, _0)]
+    Timeout(Duration),
 }
 
 impl From<std::io::Error> for Error {

@@ -8,3 +8,4 @@ pub const ERR_INTERNAL_IP_ADDR_NOT_SET: &str =
     "Internal error: `Server::ip_addr` not set.  It must be set in order to start the server.";
 pub const ERR_INTERNAL_SPAWNED_THREAD_NOT_JOINABLE: &str =
     "Internal error: Could not block on spawned thread";
+pub const ERR_TIMEOUT: &str = "Error: Time limit reached";

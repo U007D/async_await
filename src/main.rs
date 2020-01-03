@@ -1,3 +1,4 @@
+#![feature(result_map_or_else)]
 #![warn(clippy::all, clippy::nursery, clippy::pedantic, rust_2018_idioms)]
 #![forbid(bare_trait_objects)]
 #![allow(clippy::match_bool)]
