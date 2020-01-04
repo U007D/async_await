@@ -23,7 +23,6 @@ mod server;
 
 use error::Error;
 use pico_args::Arguments;
-use tokio;
 
 /// Convenience alias for the `Result` type encoding `error::Error` as the default error type.
 pub type Result<T, E = Error> = std::result::Result<T, E>;

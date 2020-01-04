@@ -3,18 +3,11 @@ mod terminate_condition;
 #[cfg(test)]
 mod unit_tests;
 
-use crate::{Error, Result};
+use crate::Result;
 pub use server_builder::ServerBuilder;
-use std::{
-    net::{IpAddr, SocketAddr},
-    time::Duration,
-};
+use std::net::{IpAddr, SocketAddr};
 use terminate_condition::Terminate;
-use tokio::{
-    net::TcpListener,
-    runtime::Runtime,
-    time::{timeout, Instant},
-};
+use tokio::{net::TcpListener, runtime::Builder, task::yield_now, time::timeout};
 
 #[derive(Debug)]
 pub struct Server {
@@ -31,12 +24,18 @@ impl Server {
     }
 
     async fn process_msgs() -> Result<()> {
-        Ok(())
+        loop {
+            yield_now().await;
+        }
     }
 
     fn start(&mut self) -> Result<()> {
-        let mut tokio = Runtime::new()?;
-        tokio.block_on(async {
+        let mut tokio_rt = Builder::new()
+            .enable_io()
+            .enable_time()
+            .basic_scheduler()
+            .build()?;
+        tokio_rt.block_on(async {
             self.tcp_listener =
                 Some(TcpListener::bind(SocketAddr::new(self.ip_addr, self.port)).await?);
 
