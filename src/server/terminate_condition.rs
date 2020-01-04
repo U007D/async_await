@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub enum TerminateCondition {
+pub enum Terminate {
     Never,
     AfterDuration(Duration),
 }

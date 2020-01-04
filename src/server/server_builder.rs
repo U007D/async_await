@@ -8,7 +8,7 @@ use crate::consts::{DEFAULT_IP_ADDR, DEFAULT_PORT};
 pub struct ServerBuilder {
     ip_addr: Option<IpAddr>,
     port: Option<u16>,
-    terminate_condition: Option<TerminateCondition>,
+    term_cond: Option<Terminate>,
 }
 
 impl ServerBuilder {
@@ -17,9 +17,7 @@ impl ServerBuilder {
             ip_addr: self.ip_addr.unwrap_or(DEFAULT_IP_ADDR),
             tcp_listener: None,
             port: self.port.unwrap_or(DEFAULT_PORT),
-            terminate_condition: self
-                .terminate_condition
-                .unwrap_or(TerminateCondition::Never),
+            term_cond: self.term_cond.unwrap_or(Terminate::Never),
         }
     }
 
@@ -33,8 +31,8 @@ impl ServerBuilder {
         self
     }
 
-    pub fn terminate_condition(mut self, terminate_condition: TerminateCondition) -> Self {
-        self.terminate_condition = Some(terminate_condition);
+    pub fn terminate_condition(mut self, terminate_condition: Terminate) -> Self {
+        self.term_cond = Some(terminate_condition);
         self
     }
 }

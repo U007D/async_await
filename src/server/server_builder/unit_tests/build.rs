@@ -20,7 +20,7 @@ fn build__respects_bind_network_interface() {
 #[test]
 fn build__respects_terminate_condition() {
     // setup
-    let expected_terminate_condition = TerminateCondition::AfterDuration(Duration::from_millis(42));
+    let expected_terminate_condition = Terminate::AfterDuration(Duration::from_millis(42));
 
     // given a `ServerBuilder` configured with a particular `TerminateCondition` mode
     let sut = Server::new().terminate_condition(expected_terminate_condition);
@@ -29,5 +29,5 @@ fn build__respects_terminate_condition() {
     let res = sut.build();
 
     // then the resulting server should be configured as expected
-    assert_eq!(res.terminate_condition, expected_terminate_condition);
+    assert_eq!(res.term_cond, expected_terminate_condition);
 }

@@ -9,7 +9,7 @@ fn start__returns_expected_value() -> Result<()> {
     let expected_delay = Duration::from_millis(0);
     let expected_result = ();
     let mut sut = Server::new()
-        .terminate_condition(TerminateCondition::AfterDuration(expected_delay))
+        .terminate_condition(Terminate::AfterDuration(expected_delay))
         .build();
 
     // when the server is started
@@ -25,7 +25,7 @@ fn start__respects_after_duration_value() -> Result<()> {
     // given a running server instance configured with a specific delay before exiting
     let expected_delay = Duration::from_millis(1);
     let mut sut = Server::new()
-        .terminate_condition(TerminateCondition::AfterDuration(expected_delay))
+        .terminate_condition(Terminate::AfterDuration(expected_delay))
         .build();
 
     // when we start on the server
